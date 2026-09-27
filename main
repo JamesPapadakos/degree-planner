@@ -1,10 +1,34 @@
 courses = { #All courses offered 
-    "CSC108": "Introduction to Computer Programming",
-    "CSC148": "Introduction to Computer Science",
-    "CSC207": "Software Design",
-    "CSC236": "Introduction to the Theory of Computation",
-    "CSC258": "Computer Organization",
-    "CSC263": "Data Structures and Analysis",
+    "CSC108": {
+        "name": "Introduction to Computer Programming",
+        "credits": 0.5,
+        "level": 100,
+    },
+    "CSC148": {
+        "name": "Introduction to Computer Science",
+        "credits": 0.5,
+        "level": 100,
+    },
+    "CSC207": {
+        "name": "Software Design",
+        "credits": 0.5,
+        "level": 200,
+    },
+    "CSC236": {
+        "name": "Introduction to the Theory of Computation",
+        "credits": 0.5,
+        "level": 200,
+    },
+    "CSC258": {
+        "name": "Computer Organization",
+        "credits": 0.5,
+        "level": 200,
+    },
+    "CSC263": {
+        "name": "Data Structures and Analysis",
+        "credits": 0.5,
+        "level": 200,
+    },
 }
 
 required_courses = ["CSC108", "CSC148", "CSC207", "CSC236", "CSC258", "CSC263"] #Required courses for CS major
@@ -49,6 +73,20 @@ def show_course_eligibility(completed_courses, prerequisites):
             print("You are eligible for", course)
         else:
             print("You are not eligible for", course)
+
+def check_level_credits(completed_courses, courses, level, required_credits):
+    total_credits = 0
+    for course in completed_courses:
+        if course in courses:
+            if courses[course]["level"] == level:
+                total_credits += courses[course]["credits"]
+
+    if total_credits >= required_credits:
+        print(f"\nYou have completed enough credits for {level}-level courses.")
+    else:
+        credits_needed = required_credits - total_credits
+        print(f"\nYou have not completed enough credits for {level}-level courses.")
+        print(f"You need {credits_needed} more credits out of {required_credits}.")
 
 completed_courses = get_completed_courses()
 show_requirements(completed_courses, required_courses, courses)
