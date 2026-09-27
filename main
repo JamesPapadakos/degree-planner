@@ -1,27 +1,55 @@
+courses = { #All courses offered 
+    "CSC108": "Introduction to Computer Programming",
+    "CSC148": "Introduction to Computer Science",
+    "CSC207": "Software Design",
+    "CSC236": "Introduction to the Theory of Computation",
+    "CSC258": "Computer Organization",
+    "CSC263": "Data Structures and Analysis",
+}
+
+required_courses = ["CSC108", "CSC148", "CSC207", "CSC236", "CSC258", "CSC263"] #Required courses for CS major
+
 prerequisites = {
     "CSC148": ["CSC108"],
     "CSC207": ["CSC148"], #fix the issue with having multiple courses required with / and ,.
     "CSC236": ["CSC148"],
     "CSC263": ["CSC236"],
 }
+def get_completed_courses():
+    completed_courses_input = input("Enter completed courses (comma-separated): ")
+    completed_courses = []
+    for course in completed_courses_input.split(","):
+        completed_courses.append(course.strip().upper())
+    return completed_courses
 
-completed_courses_input = input("Enter completed courses (comma-separated): ")
-completed_courses = [] 
-for course in completed_courses_input.split(","):
-    completed_courses.append(course.strip().upper())
+def show_requirements(completed_courses, required_courses, courses):
+    print("\nCompleted courses:")
 
-print("\nCourse eligibility:")
+    for course in required_courses: 
+        if course in completed_courses:
+            print("Completed", course, "-", courses[course])
 
-for course in prerequisites:
-    required_prereqs = prerequisites[course]
+    print("\nMissing requirements:")
+    for course in required_courses:
+        if course not in completed_courses:
+            print("Missing", course, "-", courses[course])
 
-    eligible = True
+def show_course_eligibility(completed_courses, prerequisites):
+    print("\nCourse eligibility:")
+    for course in prerequisites:
+        required_prereqs = prerequisites[course]
 
-    for prereq in required_prereqs:
-        if prereq not in completed_courses:
-            eligible = False
+        eligible = True
 
-    if eligible:
-        print("You are eligible for", course)
-    else:
-        print("You are not eligible for", course)
+        for prereq in required_prereqs:
+            if prereq not in completed_courses:
+                eligible = False
+
+        if eligible:
+            print("You are eligible for", course)
+        else:
+            print("You are not eligible for", course)
+
+completed_courses = get_completed_courses()
+show_requirements(completed_courses, required_courses, courses)
+show_course_eligibility(completed_courses, prerequisites)
