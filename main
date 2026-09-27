@@ -48,10 +48,71 @@ courses = { #All courses offered
         "name": "Introduction to Artificial Intelligence",
         "credits": 0.5,
         "level": 300
+    },
+    "PHY151": {
+        "name": "Physics I",
+        "credits": 0.5,
+        "level": 100
+    },
+    "PHY152": {
+        "name": "Physics II",
+        "credits": 0.5,
+        "level": 100
     }
 }
 
-required_courses = ["CSC108", "CSC148", "CSC207", "CSC236", "CSC258", "CSC263"] #Required courses for CS major
+programs ={
+    "Computer Science Major": {
+        "required_courses": [
+                "CSC108", 
+                "CSC148", 
+                "CSC207", 
+                "CSC236", 
+                "CSC258", 
+                "CSC263"
+                ],
+            "level_requirements": [{
+                "level": 300,
+                "credits": 1.5
+            }, {
+                "level": 400,
+                "credits": 2.0
+            }],
+            "course_groups": [{
+                "name": "Upper Year Options",
+                "courses": [
+                    "CSC343", 
+                    "CSC369", 
+                    "CSC373", 
+                    "CSC384"
+                    ],
+                "credits": 1.0
+            }]
+    },
+    "Physics Minor": {
+        "required_courses": [
+                "PHY151", 
+                "PHY152"
+                ],
+            "level_requirements": [{
+                "level": 200,
+                "credits": 1.0
+            }, {
+                "level": 300,
+                "credits": 1.0
+            }],
+            "course_groups": []                   
+            }
+}
+
+required_courses = [
+    "CSC108", 
+    "CSC148", 
+    "CSC207", 
+    "CSC236", 
+    "CSC258", 
+    "CSC263"
+    ] #Required courses for CS major
 
 prerequisites = {
     "CSC148": ["CSC108"],
@@ -60,7 +121,12 @@ prerequisites = {
     "CSC263": ["CSC236"],
 }
 
-upper_year_options = ["CSC207", "CSC236", "CSC258", "CSC263"] #Upper year courses for CS major to pick form
+upper_year_options = [
+    "CSC343", 
+    "CSC369", 
+    "CSC373", 
+    "CSC384"
+    ] #Upper year courses for CS major to pick form
 
 def get_completed_courses():
     completed_courses_input = input("Enter completed courses (comma-separated): ")
@@ -69,7 +135,22 @@ def get_completed_courses():
         completed_courses.append(course.strip().upper())
     return completed_courses
 
-def show_requirements(completed_courses, required_courses, courses):
+def get_program_choice():
+    print("Available programs:")
+    for program in programs:
+        print("-", program)
+    selected_program = input("Enter the program you are enrolled in: ")
+    if selected_program in programs:
+        return selected_program
+    else:
+        print("Invalid program choice. Please try again.")
+        return get_program_choice()
+
+def show_requirements(
+        completed_courses, 
+        required_courses, 
+        courses
+        ):
     print("\nCompleted courses:")
 
     for course in required_courses: 
@@ -97,7 +178,11 @@ def show_course_eligibility(completed_courses, prerequisites):
         else:
             print("You are not eligible for", course)
 
-def check_level_credits(completed_courses, courses, level, required_credits):
+def check_level_credits(completed_courses, 
+                        courses, 
+                        level, 
+                        required_credits
+                        ):
     total_credits = 0
     for course in completed_courses:
         if course in courses:
@@ -111,7 +196,12 @@ def check_level_credits(completed_courses, courses, level, required_credits):
         print(f"\nYou have not completed enough credits for {level}-level courses.")
         print(f"You need {credits_needed} more credits out of {required_credits}.")
 
-def check_course_group(completed_courses, courses, course_group, required_credits): 
+def check_course_group(
+        completed_courses, 
+        courses, 
+        course_group, 
+        required_credits
+        ): 
     total_credits = 0
     for course in completed_courses:
         if course in course_group:
@@ -124,9 +214,43 @@ def check_course_group(completed_courses, courses, course_group, required_credit
         credits_needed = required_credits - total_credits
         print(f"You need {credits_needed} more credits from the course group.")
 
+def check_program_requirements(
+        completed_courses, 
+        program_requirements, 
+        courses 
+        ):
+
+    show_requirements(
+        completed_courses, 
+        program_requirements["required_courses"], 
+        courses
+        )
+    
+    for requirement in program_requirements["level_requirements"]:
+        check_level_credits(
+            completed_courses, 
+            courses, 
+            requirement["level"],
+              requirement["credits"]
+              )
+    
+    for course_group in program_requirements["course_groups"]:
+        check_course_group(
+            completed_courses, 
+            courses, 
+            course_group["courses"], 
+            course_group["credits"])
+
 completed_courses = get_completed_courses()
-show_requirements(completed_courses, required_courses, courses)
-show_course_eligibility(completed_courses, prerequisites)
-check_level_credits(completed_courses, courses, 300, 1.0) #Check if the user has completed enough 300-level courses
-check_level_credits(completed_courses, courses, 400, 1.0) #Check if the user has completed enough 400-level courses
-check_course_group(completed_courses, courses, upper_year_options, 1.0) #Check if the user has completed enough upper year courses
+selected_program = get_program_choice()
+program_requirements = programs[selected_program]
+check_program_requirements(
+    completed_courses, 
+    program_requirements, 
+    courses, 
+    )
+
+show_course_eligibility(
+    completed_courses, 
+    prerequisites
+    )
