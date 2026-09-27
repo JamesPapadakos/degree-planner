@@ -29,6 +29,26 @@ courses = { #All courses offered
         "credits": 0.5,
         "level": 200,
     },
+    "CSC343": {
+        "name": "Introduction to Databases",
+        "credits": 0.5,
+        "level": 300
+    },
+    "CSC369": {
+        "name": "Operating Systems",
+        "credits": 0.5,
+        "level": 300
+    },
+    "CSC373": {
+        "name": "Algorithm Design, Analysis & Complexity",
+        "credits": 0.5,
+        "level": 300
+    },
+    "CSC384": {
+        "name": "Introduction to Artificial Intelligence",
+        "credits": 0.5,
+        "level": 300
+    }
 }
 
 required_courses = ["CSC108", "CSC148", "CSC207", "CSC236", "CSC258", "CSC263"] #Required courses for CS major
@@ -39,6 +59,9 @@ prerequisites = {
     "CSC236": ["CSC148"],
     "CSC263": ["CSC236"],
 }
+
+upper_year_options = ["CSC207", "CSC236", "CSC258", "CSC263"] #Upper year courses for CS major to pick form
+
 def get_completed_courses():
     completed_courses_input = input("Enter completed courses (comma-separated): ")
     completed_courses = []
@@ -88,6 +111,22 @@ def check_level_credits(completed_courses, courses, level, required_credits):
         print(f"\nYou have not completed enough credits for {level}-level courses.")
         print(f"You need {credits_needed} more credits out of {required_credits}.")
 
+def check_course_group(completed_courses, courses, course_group, required_credits): 
+    total_credits = 0
+    for course in completed_courses:
+        if course in course_group:
+            total_credits += courses[course]["credits"]
+
+    print(f"\nCompleted credits from the course group: {total_credits} out of {required_credits}.")
+    if total_credits >= required_credits:
+        print("Requirement completed.")
+    else:
+        credits_needed = required_credits - total_credits
+        print(f"You need {credits_needed} more credits from the course group.")
+
 completed_courses = get_completed_courses()
 show_requirements(completed_courses, required_courses, courses)
 show_course_eligibility(completed_courses, prerequisites)
+check_level_credits(completed_courses, courses, 300, 1.0) #Check if the user has completed enough 300-level courses
+check_level_credits(completed_courses, courses, 400, 1.0) #Check if the user has completed enough 400-level courses
+check_course_group(completed_courses, courses, upper_year_options, 1.0) #Check if the user has completed enough upper year courses
