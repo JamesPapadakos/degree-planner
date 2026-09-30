@@ -199,15 +199,16 @@ def check_level_credits(completed_courses,
 def check_course_group(
         completed_courses, 
         courses, 
-        course_group, 
+        group_name,
+        course_options, 
         required_credits
         ): 
     total_credits = 0
     for course in completed_courses:
-        if course in course_group:
+        if course in course_options:
             total_credits += courses[course]["credits"]
 
-    print(f"\nCompleted credits from the course group: {total_credits} out of {required_credits}.")
+    print(f"\nCompleted credits from {group_name}: {total_credits} out of {required_credits}.")
     if total_credits >= required_credits:
         print("Requirement completed.")
     else:
@@ -236,9 +237,10 @@ def check_program_requirements(
     
     for course_group in program_requirements["course_groups"]:
         check_course_group(
-            completed_courses, 
-            courses, 
-            course_group["courses"], 
+            completed_courses,
+            courses,
+            course_group["name"],
+            course_group["courses"],
             course_group["credits"])
 
 completed_courses = get_completed_courses()
