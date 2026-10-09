@@ -94,3 +94,58 @@ def check_program_requirements(
             course_group["name"],
             course_group["courses"],
             course_group["credits"])
+
+def evaluate_program_requirements(
+    completed_courses,
+    courses,
+    program_requirements
+):
+    required_results = []
+
+    for course in program_requirements["required_courses"]:
+        required_results.append({
+            "course": course,
+            "completed": course in completed_courses
+        })
+
+    level_results = []
+
+    for requirement in program_requirements["level_requirements"]:
+        level = requirement["level"]
+        required_credits = requirement["credits"]
+
+        total_credits = 0
+
+        for course in completed_courses:
+            if course in courses:
+                if courses[course]["level"] == level:
+                    total_credits += courses[course]["credits"]
+
+        level_results.append({
+            "level": level,
+            "completed_credits": total_credits,
+            "required_credits": required_credits,
+            "completed": total_credits >= required_credits
+        })
+
+    course_group_results = []
+
+    for group in program_requirements["course_groups"]:
+        total_credits = 0
+
+        for course in completed_courses:
+            if course in group["courses"] and course in courses:
+                total_credits += courses[course]["credits"]
+
+        course_group_results.append({
+            "name": group["name"],
+            "completed_credits": total_credits,
+            "required_credits": group["credits"],
+            "completed": total_credits >= group["credits"]
+        })
+
+    return {
+        "required_courses": required_results,
+        "level_requirements": level_results,
+        "course_groups": course_group_results
+    }
