@@ -1,208 +1,14 @@
-import os
-import psycopg
-from dotenv import load_dotenv
+from database import (
+    load_courses,
+    load_prerequisites,
+    load_programs,
+    load_program_requirements
+)
 
-load_dotenv()
-
-def load_courses():
-    connection = psycopg.connect(
-        dbname="degree_planner",
-        user="postgres",
-        password=os.getenv("DB_PASSWORD"),
-        host="localhost",
-        port="5432"
-    )
-
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        SELECT course_code, course_name, credits, level
-        FROM Course;
-    """)
-
-    rows = cursor.fetchall()
-
-    courses = {}
-
-    for row in rows:
-        course_code = row[0]
-
-        courses[course_code] = {
-            "name": row[1],
-            "credits": float(row[2]),
-            "level": row[3]
-        }
-
-    cursor.close()
-    connection.close()
-
-    return courses
-
-def load_prerequisites():
-    connection = psycopg.connect(
-        dbname="degree_planner",
-        user="postgres",
-        password=os.getenv("DB_PASSWORD"),
-        host="localhost",
-        port="5432"
-    )
-
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        SELECT course_code, prerequisite_code
-        FROM Prerequisite;
-    """)
-
-    rows = cursor.fetchall()
-
-    prerequisites = {}
-
-    for course_code, prerequisite_code in rows:
-        if course_code not in prerequisites:
-            prerequisites[course_code] = []
-
-        prerequisites[course_code].append(prerequisite_code)
-
-    cursor.close()
-    connection.close()
-
-    return prerequisites
-
-def load_required_courses(program_id):
-    connection = psycopg.connect(
-        dbname="degree_planner",
-        user="postgres",
-        password=os.getenv("DB_PASSWORD"),
-        host="localhost",
-        port="5432"
-    )
-
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        SELECT course_code
-        FROM ProgramRequiredCourse
-        WHERE program_id = %s;
-    """, (program_id,))
-
-    rows = cursor.fetchall()
-
-    required_courses = []
-
-    for row in rows:
-        required_courses.append(row[0])
-
-    cursor.close()
-    connection.close()
-
-    return required_courses
-
-def load_programs():
-    connection = psycopg.connect(
-        dbname="degree_planner",
-        user="postgres",
-        password=os.getenv("DB_PASSWORD"),
-        host="localhost",
-        port="5432"
-    )
-
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        SELECT program_id, program_name
-        FROM Program;
-    """)
-
-    rows = cursor.fetchall()
-
-    programs = {}
-
-    for program_id, program_name in rows:
-        programs[program_name] = program_id
-
-    cursor.close()
-    connection.close()
-
-    return programs
-
-def load_level_requirements(program_id):
-    connection = psycopg.connect(
-        dbname="degree_planner",
-        user="postgres",
-        password=os.getenv("DB_PASSWORD"),
-        host="localhost",
-        port="5432"
-    )
-
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        SELECT level, required_credits
-        FROM LevelRequirement
-        WHERE program_id = %s;
-    """, (program_id,))
-
-    rows = cursor.fetchall()
-
-    level_requirements = []
-
-    for level, required_credits in rows:
-        level_requirements.append({
-            "level": level,
-            "credits": float(required_credits)
-        })
-
-    cursor.close()
-    connection.close()
-
-    return level_requirements
-
-def load_course_groups(program_id):
-    connection = psycopg.connect(
-        dbname="degree_planner",
-        user="postgres",
-        password=os.getenv("DB_PASSWORD"),
-        host="localhost",
-        port="5432"
-    )
-
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        SELECT group_id, group_name, required_credits
-        FROM CourseGroup
-        WHERE program_id = %s;
-    """, (program_id,))
-
-    group_rows = cursor.fetchall()
-
-    course_groups = []
-
-    for group_id, group_name, required_credits in group_rows:
-        cursor.execute("""
-            SELECT course_code
-            FROM CourseGroupOption
-            WHERE group_id = %s;
-        """, (group_id,))
-
-        option_rows = cursor.fetchall()
-
-        course_options = []
-
-        for row in option_rows:
-            course_options.append(row[0])
-
-        course_groups.append({
-            "name": group_name,
-            "courses": course_options,
-            "credits": float(required_credits)
-        })
-
-    cursor.close()
-    connection.close()
-
-    return course_groups
+from requirements import (
+    check_program_requirements,
+    show_course_eligibility
+)
 
 def get_completed_courses():
     completed_courses_input = input("Enter completed courses (comma-separated): ")
@@ -222,130 +28,26 @@ def get_program_choice():
         print("Invalid program choice. Please try again.")
         return get_program_choice()
 
-def show_requirements(
-        completed_courses, 
-        required_courses, 
+
+if __name__ == "__main__":
+    courses = load_courses()
+    prerequisites = load_prerequisites()
+    programs = load_programs()
+
+    completed_courses = get_completed_courses()
+    selected_program = get_program_choice()
+
+    program_id = programs[selected_program]
+
+    program_requirements = load_program_requirements(program_id)
+
+    check_program_requirements(
+        completed_courses,
+        program_requirements,
         courses
-        ):
-    print("\nCompleted courses:")
+    )
 
-    for course in required_courses: 
-        if course in completed_courses:
-            print("Completed", course, "-", courses[course])
-
-    print("\nMissing requirements:")
-    for course in required_courses:
-        if course not in completed_courses:
-            print("Missing", course, "-", courses[course])
-
-def show_course_eligibility(completed_courses, prerequisites):
-    print("\nCourse eligibility:")
-    for course in prerequisites:
-        required_prereqs = prerequisites[course]
-
-        eligible = True
-
-        for prereq in required_prereqs:
-            if prereq not in completed_courses:
-                eligible = False
-
-        if eligible:
-            print("You are eligible for", course)
-        else:
-            print("You are not eligible for", course)
-
-def check_level_credits(completed_courses, 
-                        courses, 
-                        level, 
-                        required_credits
-                        ):
-    total_credits = 0
-    for course in completed_courses:
-        if course in courses:
-            if courses[course]["level"] == level:
-                total_credits += courses[course]["credits"]
-
-    if total_credits >= required_credits:
-        print(f"\nYou have completed enough credits for {level}-level courses.")
-    else:
-        credits_needed = required_credits - total_credits
-        print(f"\nYou have not completed enough credits for {level}-level courses.")
-        print(f"You need {credits_needed} more credits out of {required_credits}.")
-
-def check_course_group(
-        completed_courses, 
-        courses, 
-        group_name,
-        course_options, 
-        required_credits
-        ): 
-    total_credits = 0
-    for course in completed_courses:
-        if course in course_options:
-            total_credits += courses[course]["credits"]
-
-    print(f"\nCompleted credits from {group_name}: {total_credits} out of {required_credits}.")
-    if total_credits >= required_credits:
-        print("Requirement completed.")
-    else:
-        credits_needed = required_credits - total_credits
-        print(f"You need {credits_needed} more credits from the course group.")
-
-def check_program_requirements(
-        completed_courses, 
-        program_requirements, 
-        courses 
-        ):
-
-    show_requirements(
-        completed_courses, 
-        program_requirements["required_courses"], 
-        courses
-        )
-    
-    for requirement in program_requirements["level_requirements"]:
-        check_level_credits(
-            completed_courses, 
-            courses, 
-            requirement["level"],
-              requirement["credits"]
-              )
-    
-    for course_group in program_requirements["course_groups"]:
-        check_course_group(
-            completed_courses,
-            courses,
-            course_group["name"],
-            course_group["courses"],
-            course_group["credits"])
-        
-courses = load_courses()
-prerequisites = load_prerequisites()
-programs = load_programs()
-
-completed_courses = get_completed_courses()
-
-selected_program = get_program_choice()
-
-program_id = programs[selected_program]
-
-required_courses = load_required_courses(program_id)
-level_requirements = load_level_requirements(program_id)
-course_groups = load_course_groups(program_id)
-
-program_requirements = {
-    "required_courses": required_courses,
-    "level_requirements": level_requirements,
-    "course_groups": course_groups
-}
-
-check_program_requirements(
-    completed_courses,
-    program_requirements,
-    courses
-)
-
-show_course_eligibility(
-    completed_courses,
-    prerequisites
-)
+    show_course_eligibility(
+        completed_courses,
+        prerequisites
+    )
