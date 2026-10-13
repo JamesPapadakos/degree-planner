@@ -125,6 +125,7 @@ def evaluate_program_requirements(
             "level": level,
             "completed_credits": total_credits,
             "required_credits": required_credits,
+            "remaining_credits": max(0, required_credits - total_credits),
             "completed": total_credits >= required_credits
         })
 
@@ -141,6 +142,7 @@ def evaluate_program_requirements(
             "name": group["name"],
             "completed_credits": total_credits,
             "required_credits": group["credits"],
+            "remaining_credits": max(0, group["credits"] - total_credits),
             "completed": total_credits >= group["credits"]
         })
 
