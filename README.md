@@ -153,13 +153,13 @@ The frontend displays:
 
 ### Course Search
 
-![Course search](docs/course-search.png)
+![Course search](docs/CourseSearch.png)
 
 Search for courses by course code or course name and select completed courses.
 
 ### Degree Progress
 
-![Degree progress](docs/degree-progress.png)
+![Degree progress](docs/DegreeProgress.png)
 
 View completed and missing required courses, level-credit progress, and remaining credits.
 
